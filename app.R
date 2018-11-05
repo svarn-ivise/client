@@ -6,6 +6,7 @@ library(jsonlite)
 library(taucharts)
 library(highcharter)
 
+#######CLIENT VIEW
 
 total <- data.frame(day = seq(Sys.Date(),Sys.Date() + 365,by = 1))
 
@@ -100,7 +101,7 @@ ui <- fluidPage(
                           tauchartsOutput("lineGraph"),
                           HTML("</div>"))),
                           column(width=1)),
-              tabPanel("Period To Date", value="explorer"),
+              tabPanel("Simulate", value="explorer"),
               tabPanel("Download", value="explorer",
                        column(width=1),
                        column(width=10,
@@ -152,7 +153,9 @@ server <- function(input,output,session){
   
   output$forecastDay <- renderHighchart({
     
-    df <- forecast_demand(as.Date(input$forecastDate)) %>%
+    forecastDate <- input$forecastDate
+    
+    df <- forecast_demand(as.Date(forecastDate)) %>%
       mutate(Type = if_else(Date < Sys.Date(), "Realized", "Forecast")) %>%
       bind_rows(.[.$Date == Sys.Date()-1,] %>% mutate(Type="Forecast")) %>%
       arrange(Date)
