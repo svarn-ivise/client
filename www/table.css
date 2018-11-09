@@ -190,3 +190,9 @@ table td:hover{
   font-weight: bold;
   background-color:#ffe17f;
 }
+.settings-table td, th{
+  padding:10px;
+}
+.settings-table th{
+  text-align:center;
+}

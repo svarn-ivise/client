@@ -7,7 +7,6 @@ library(taucharts)
 library(highcharter)
 
 #######CLIENT VIEW
-
 total <- data.frame(day = seq(Sys.Date(),Sys.Date() + 365,by = 1))
 
 x <- seq(0,2*pi,length.out=nrow(total))
@@ -48,9 +47,28 @@ forecast_demand <- function(trip.dt){
   
 }
 
+toggle <- "<input type='checkbox' id='inventory_type' checked data-toggle='toggle' data-on='On' 
+                                   data-off='Off' data-onstyle='success' data-offstyle='danger' data-width='120'>"
+
+settings <- c("Service has sold out", 
+              "Service is 80% Capacity", 
+              "Pricing Model has been updated", 
+              "Demand forecasts updated",
+              "Forecasted Demand & Price")
+
+toggle <- data.frame(Option = settings, Toggle = toggle, Settings = NA)
+toggle <- capture.output(print(xtable::xtable(toggle),type="html", 
+                               html.table.attributes="class=settings-table",
+                               include.rownames = FALSE, 
+                               sanitize.text.function = function(x){x}))
+
 ui <- fluidPage(
   tags$head(
-    HTML('<link href="https://fonts.googleapis.com/css?family=Kodchasan" rel="stylesheet">'),
+    HTML('<link href="https://fonts.googleapis.com/css?family=Kodchasan" rel="stylesheet">
+          <link href=\"https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css\" rel=\"stylesheet\">
+          <script src=\"https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js\"></script>
+         '),
+    
     tags$link(rel = "stylesheet", type = "text/css", href = "table.css")
   ),
   div(class='header',
@@ -61,7 +79,7 @@ ui <- fluidPage(
            <h2><b>Client Dashboard</b></h2>
            </div>")),
   tabsetPanel(id = "activeTab",
-              tabPanel("Explore", value="manage",
+              tabPanel("Overview", value="manage",
                        fluidRow(
                          column(width=1),
                          column(width=5,
@@ -101,7 +119,7 @@ ui <- fluidPage(
                           tauchartsOutput("lineGraph"),
                           HTML("</div>"))),
                           column(width=1)),
-              tabPanel("Simulate", value="explorer"),
+           #   tabPanel("Simulate", value="explorer"),
               tabPanel("Download", value="explorer",
                        column(width=1),
                        column(width=10,
@@ -116,7 +134,25 @@ ui <- fluidPage(
                                   br(style="line-height:20px;"),HTML("&nbsp&nbsp&nbsp"),downloadButton("dlData")),
                               tableOutput("dlTable")
                        )),
-              tabPanel("Settings", value="simulator")),
+              tabPanel("Settings", value="simulator",
+                        #  uiOutput('settingsTable'),
+                          fluidRow(
+                            div(style="display: inline-block;vertical-align:top;",
+                            selectInput("emailAccount", "Select Email:", 
+                                        c("dave@ferriesusa.com", "operations@ferriesusa.com"))
+                            ),
+                            div(style="display: inline-block;vertical-align:top;",
+                                br(),actionButton("saveSettings", "Save")
+                            ),
+                            div(style="display: inline-block;vertical-align:top;",
+                                br(),actionButton("resetSettings", "Reset")
+                            )
+                          ),
+                          h2("Email Settings"),
+                          HTML(toggle)
+                       ),
+           tabPanel("Test Model", value="simulator")
+           ),
               HTML("<div class='footer'>
                    <img src='http://mellopipelines.com/public/image/footer-hills.png'>
                    </img></div>")
@@ -257,6 +293,16 @@ server <- function(input,output,session){
     
     
   }, rownames=T, sanitize.text.function = function(x) x)
+  
+  output$settingsTable <- renderTable({
+    
+    
+    toggle <- "<input type='checkbox' id='inventory_type' checked data-toggle='toggle' data-on='On' 
+                                   data-off='Off' data-onstyle='success' data-offstyle='danger' data-width='120'>"
+    
+    data.frame(Setting = paste0("Setting ",1:10), Toggle = toggle)
+    
+  },sanitize.text.function = function(x) x)
 }
 
 shinyApp(ui,server)
